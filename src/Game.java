@@ -15,8 +15,10 @@ public class Game implements Runnable {     // Implements runnable so it can be 
 	private BufferStrategy bs;
 	private Graphics g;
 	
-	private BufferedImage test;
-	private SpriteSheet ss;
+	//States
+	private State gameState;
+	private State menuState;
+	private State settingsState;
 
 	public Game(String title, int width, int height) {
 		this.width = width;
@@ -26,12 +28,19 @@ public class Game implements Runnable {     // Implements runnable so it can be 
 	
 	private void init() {
 		display = new Display(title, width, height);
-		test = ImageLoader.loadImage("/textures/sprite_sheet.png");
-		ss = new SpriteSheet(test);
+		Assets.init();
+		
+		gameState = new GameState();
+		menuState = new MenuState();
+		settingsState = new SettingsState();
+		State.setState(gameState);
 	}
 	
+	
 	private void tick() {
-		
+		if(State.getState() != null)
+			State.getState().tick();
+
 	}
 	
 	private void render() {
@@ -49,7 +58,8 @@ public class Game implements Runnable {     // Implements runnable so it can be 
 		
 		///////////////////////////// START DRAWING
 		
-		
+		if(State.getState() != null)
+			State.getState().render(g);
 		
 		///////////////////////////// END DRAWING
 		
@@ -61,9 +71,32 @@ public class Game implements Runnable {     // Implements runnable so it can be 
 		
 		init();
 		
+		int fps = 60;
+		double timePerTick = 1000000000 / fps;
+		double delta = 0;
+		long now;
+		long lastTime = System.nanoTime();
+		long timer = 0;
+		int ticks = 0;
+		
 		while(running) {
-			tick();
-			render();
+			now = System.nanoTime();
+			delta += (now - lastTime) / timePerTick;
+			timer += now - lastTime;
+			lastTime = now;
+			
+			if(delta >= 1) {
+				tick();
+				render();
+				ticks++;
+				delta--;
+			}
+			
+			if(timer >= 1000000000) {
+				System.out.println("FPS: " + ticks);
+				ticks = 0;
+				timer = 0;
+			}
 			
 		}
 		
