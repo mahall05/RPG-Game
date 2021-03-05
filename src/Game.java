@@ -19,25 +19,32 @@ public class Game implements Runnable {     // Implements runnable so it can be 
 	private State gameState;
 	private State menuState;
 	private State settingsState;
+	
+	//Input
+	private KeyManager keyManager;
 
 	public Game(String title, int width, int height) {
 		this.width = width;
 		this.height = height;
 		this.title = title;
+		keyManager = new KeyManager();
 	}
 	
 	private void init() {
 		display = new Display(title, width, height);
+		display.getFrame().addKeyListener(keyManager);
 		Assets.init();
 		
-		gameState = new GameState();
-		menuState = new MenuState();
-		settingsState = new SettingsState();
+		gameState = new GameState(this);
+		menuState = new MenuState(this);
 		State.setState(gameState);
 	}
 	
 	
 	private void tick() {
+		keyManager.tick();
+		
+		
 		if(State.getState() != null)
 			State.getState().tick();
 
@@ -102,6 +109,10 @@ public class Game implements Runnable {     // Implements runnable so it can be 
 		
 		stop();
 		
+	}
+	
+	public KeyManager getKeyManager() {
+		return keyManager;
 	}
 	
 	public synchronized void start() {     // Synchronized is only used for working with threads
